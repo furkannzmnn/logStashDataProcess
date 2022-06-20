@@ -4,13 +4,16 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/go-co-op/gocron"
 	"log"
 	"net/http"
 	"net/smtp"
 	"strings"
+	"time"
 )
 
 func main() {
+	jobs()
 	router()
 }
 
@@ -118,4 +121,20 @@ type apiUrl struct {
 }
 type requestType struct {
 	RequestType string `json:"type"`
+}
+
+var task = func() {
+	fmt.Println("task is running")
+	// TODO: REQUEST TO ELASTICSEARCH AND RETURN DATA AND PARSE AND SEND MAIL
+}
+
+func jobs() {
+	scheduler := gocron.NewScheduler(time.Local)
+	job, err := scheduler.Every(1).Minute().Do(task)
+	if err != nil {
+		panic(err.Error())
+	}
+	scheduler.StartAsync()
+	fmt.Println(job.ScheduledTime())
+
 }

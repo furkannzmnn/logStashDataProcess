@@ -155,9 +155,14 @@ func getRequestType(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+}
 
-	if args.RequestType == "/api/v1" {
-		runAndExecuteJobsMap()
+func executeEverySaturday() {
+	scheduler := gocron.NewScheduler(time.Local)
+	job, err := scheduler.Every(1).Saturday().Do(task)
+	if err != nil {
+		log.Println(err)
 	}
-
+	scheduler.StartAsync()
+	fmt.Println(job.ScheduledTime())
 }

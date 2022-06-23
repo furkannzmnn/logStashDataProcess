@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-co-op/gocron"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/smtp"
 	"strings"
@@ -13,9 +14,11 @@ import (
 )
 
 func main() {
-	jobs()
+	runAndExecuteJobsMap()
 	router()
 }
+
+var logs map[int]string
 
 func router() {
 	mux := http.NewServeMux()
@@ -33,9 +36,7 @@ func handleLargeRequest(w http.ResponseWriter, r *http.Request) {
 	if events.DeviceName == "MACOS" {
 		sendMail(events.DeviceName, events.UserID, w)
 	}
-
 	handleApiRequest(w, r)
-
 }
 
 func handleApiRequest(w http.ResponseWriter, r *http.Request) {
@@ -57,12 +58,13 @@ func handleApiRequest(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
+		logs[rand.Intn(100)] = api.Url
 	}
 }
 
 func sendMail(deviceName string, userId string, w http.ResponseWriter) {
 	from := "ozmenf97@gmail.com"
-	pass := "ozmenOZMEN123"
+	pass := "password"
 	to := []string{
 		"ozmenf97@gmail.com", // TODO: sql connection implementation
 	}
@@ -125,16 +127,37 @@ type requestType struct {
 
 var task = func() {
 	fmt.Println("task is running")
-	// TODO: REQUEST TO ELASTICSEARCH AND RETURN DATA AND PARSE AND SEND MAIL
+	for _, value := range logs {
+		fmt.Println("executed task: " + value)
+		// TODO: SEND TO ELASTİC TO API_URL INDEX
+		_, err := http.PostForm("http://localhost:8080/create/index/count_api", nil)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		logs = make(map[int]string)
+	}
 }
 
-func jobs() {
+func runAndExecuteJobsMap() {
 	scheduler := gocron.NewScheduler(time.Local)
 	job, err := scheduler.Every(1).Minute().Do(task)
 	if err != nil {
-		panic(err.Error())
+		log.Println(err)
 	}
 	scheduler.StartAsync()
 	fmt.Println(job.ScheduledTime())
+}
+
+func getRequestType(w http.ResponseWriter, r *http.Request) {
+	var args requestType
+	err := json.NewDecoder(r.Body).Decode(&args)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if args.RequestType == "/api/v1" {
+		runAndExecuteJobsMap()
+	}
 
 }

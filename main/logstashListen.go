@@ -4,17 +4,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"math/rand"
 	"net/http"
 	"net/smtp"
 	"strings"
-	"time"
 )
 
 func main() {
-	runAndExecuteJobsMap()
+	RunAndExecuteJobsMap(task)
 	router()
 }
 
@@ -34,7 +32,7 @@ func handleLargeRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if events.DeviceName == "MACOS" {
-		sendMail(events.DeviceName, events.UserID, w)
+		sendMail(events.DeviceName, w)
 	}
 	handleApiRequest(w, r)
 }
@@ -62,7 +60,7 @@ func handleApiRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendMail(deviceName string, userId string, w http.ResponseWriter) {
+func sendMail(deviceName string, w http.ResponseWriter) {
 	from := "ozmenf97@gmail.com"
 	pass := "password"
 	to := []string{
@@ -138,16 +136,6 @@ var task = func() {
 	}
 }
 
-func runAndExecuteJobsMap() {
-	scheduler := gocron.NewScheduler(time.Local)
-	job, err := scheduler.Every(1).Minute().Do(task)
-	if err != nil {
-		log.Println(err)
-	}
-	scheduler.StartAsync()
-	fmt.Println(job.ScheduledTime())
-}
-
 func getRequestType(w http.ResponseWriter, r *http.Request) {
 	var args requestType
 	err := json.NewDecoder(r.Body).Decode(&args)
@@ -155,14 +143,4 @@ func getRequestType(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-}
-
-func executeEverySaturday() {
-	scheduler := gocron.NewScheduler(time.Local)
-	job, err := scheduler.Every(1).Saturday().Do(task)
-	if err != nil {
-		log.Println(err)
-	}
-	scheduler.StartAsync()
-	fmt.Println(job.ScheduledTime())
 }

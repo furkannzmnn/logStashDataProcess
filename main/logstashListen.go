@@ -4,24 +4,21 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/smtp"
 	"strings"
 )
 
-func main() {
-	RunAndExecuteJobsMap(task)
-	router()
-}
-
 var logs map[int]string
 
-func router() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", handleLargeRequest)
-	log.Fatal(http.ListenAndServe(":5690", mux))
+func main() {
+	divideTask()
+}
+
+func divideTask() {
+	RunAndExecuteJobsMap(task)
+	Router()
 }
 
 func handleLargeRequest(w http.ResponseWriter, r *http.Request) {

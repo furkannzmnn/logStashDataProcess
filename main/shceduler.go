@@ -16,3 +16,5 @@ func RunAndExecuteJobsMap(tasks func()) {
 	scheduler.StartAsync()
 	fmt.Println(job.ScheduledTime())
 }
+
+const _ROUTE_PATH = "/api/v1/logs"

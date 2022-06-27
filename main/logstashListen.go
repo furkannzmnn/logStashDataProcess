@@ -43,9 +43,6 @@ func handleApiRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: SPLIT REQUEST TYPE AND SAVE TO DB AND RUN JOBS IN BACKGROUND
-	// TODO: ADD AUTHENTICATION
-	// TODO: SEND DATA ELASTİC INDEX : api.url.count
-
 	// contains string in the url
 	if strings.Contains(api.Url, "/api/v1/") {
 		fmt.Println("api url initalized")
